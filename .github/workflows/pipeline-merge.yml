@@ -16,6 +16,10 @@ jobs:
     runs-on: ubuntu-latest
     environment: QA
     steps:
+
+      - name: CHECKOUT THIS REPOSITORY
+        uses: actions/checkout@v2
+
       - name: INSTALL SFDX
         run: sh 'ci-cd/install/install-sfdx.sh'
 
@@ -39,6 +43,10 @@ jobs:
     environment: UAT
     needs: [qa_deployment]
     steps:
+
+      - name: CHECKOUT THIS REPOSITORY
+        uses: actions/checkout@v2
+
       - name: INSTALL SFDX
         run: sh 'ci-cd/install/install-sfdx.sh'
         
@@ -61,6 +69,10 @@ jobs:
     environment: PROD
     needs: [qa_deployment, uat_deployment]
     steps:
+
+      - name: CHECKOUT THIS REPOSITORY
+        uses: actions/checkout@v2
+        
       - name: INSTALL SFDX
         run: sh 'ci-cd/install/install-sfdx.sh'
 
