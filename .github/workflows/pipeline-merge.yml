@@ -9,42 +9,71 @@ name: pipeline-merge-workflow
 on:
   push:
 
-env:
-  GITHUB_JSON:                  ${{ toJSON(github) }}
-  SF_DEVHUB_CLIENTID:           ${{ secrets.SF_DEVHUB_CLIENTID }}
-  SF_DEVHUB_KEY_BASE64:         ${{ secrets.SF_DEVHUB_KEY_BASE64 }}
-  SF_DEVHUB_ORG_URL:            ${{ secrets.SF_DEVHUB_ORG_URL }}
-  SF_INT_AUTH_URL:              ${{ secrets.SF_INT_AUTH_URL }}
-  DEVHUB_ORG_USERNAME:          ${{ secrets.CICD_DEVHUB_USERNAME }}
-  PACKAGE_NAME:                 ${{ secrets.PACKAGE_NAME }}
-  DEVHUB_ALIAS:                 "devhub"
-  INT_ALIAS:                    "int"
-  SCRATCH_ORG_ALIAS:            "ci-scratch-org"
-
 jobs:
   qa_deployment:
+    env: 
+      QA_AUTH_URL:  ${{ secrets.QA_AUTH_URL }}
     runs-on: ubuntu-latest
     environment: QA
     steps:
-      - name: test 1
-        run: echo "qa env"
+      - name: INSTALL SFDX
+        run: sh 'ci-cd/install/install-sfdx.sh'
+
+      # - name: AUTHENTICATE DEVHUB PWSH
+      #   shell: pwsh
+      #   run: . .\ci-cd\authenticate\authenticate-salesforce-devhub.ps1 -auth_key_base64 $env:SF_DEVHUB_KEY_BASE64 -auth_clientid $env:SF_DEVHUB_CLIENTID -auth_username $env:DEVHUB_ORG_USERNAME -auth_org_url $env:SF_DEVHUB_ORG_URL -devhub_alias $env:DEVHUB_ALIAS
+          
+      - name: AUTHENTICATE QA ORG
+        shell: pwsh
+        run: . .\ci-cd\authenticate\authenticate-salesforce-authurl.ps1 -org_alias QA -auth_url $env:QA_AUTH_URL
+
+      - name: PUSH SOURCE CODE BASE TO ORG
+        shell: pwsh 
+        run: . .\ci-cd\scratch_org\push_src_to_org.ps1 -org_alias QA
+
 
   uat_deployment:
     runs-on: ubuntu-latest
+    env: 
+      UAT_AUTH_URL:  ${{ secrets.UAT_AUTH_URL }}
     environment: UAT
     needs: [qa_deployment]
-
     steps:
-      - name : test 2
-        run: echo "uat"
-    
+      - name: INSTALL SFDX
+        run: sh 'ci-cd/install/install-sfdx.sh'
+        
+      # - name: AUTHENTICATE DEVHUB PWSH
+      #   shell: pwsh
+      #   run: . .\ci-cd\authenticate\authenticate-salesforce-devhub.ps1 -auth_key_base64 $env:SF_DEVHUB_KEY_BASE64 -auth_clientid $env:SF_DEVHUB_CLIENTID -auth_username $env:DEVHUB_ORG_USERNAME -auth_org_url $env:SF_DEVHUB_ORG_URL -devhub_alias $env:DEVHUB_ALIAS
+      
+      - name: AUTHENTICATE UAT ORG
+        shell: pwsh
+        run: . .\ci-cd\authenticate\authenticate-salesforce-authurl.ps1 -org_alias UAT -auth_url $env:UAT_AUTH_URL
+
+      - name: PUSH SOURCE CODE BASE TO ORG
+        shell: pwsh 
+        run: . .\ci-cd\scratch_org\push_src_to_org.ps1 -org_alias UAT
+
   prod_deployment:
     runs-on: ubuntu-latest
+    env: 
+      PROD_AUTH_URL:  ${{ secrets.PROD_AUTH_URL }}
     environment: PROD
     needs: [qa_deployment, uat_deployment]
-
     steps:
-      - name : test 2
-        run: echo "prod"
+      - name: INSTALL SFDX
+        run: sh 'ci-cd/install/install-sfdx.sh'
+
+      # - name: AUTHENTICATE DEVHUB PWSH
+      #   shell: pwsh
+      #   run: . .\ci-cd\authenticate\authenticate-salesforce-devhub.ps1 -auth_key_base64 $env:SF_DEVHUB_KEY_BASE64 -auth_clientid $env:SF_DEVHUB_CLIENTID -auth_username $env:DEVHUB_ORG_USERNAME -auth_org_url $env:SF_DEVHUB_ORG_URL -devhub_alias $env:DEVHUB_ALIAS
+          
+      - name: AUTHENTICATE PROD ORG
+        shell: pwsh
+        run: . .\ci-cd\authenticate\authenticate-salesforce-authurl.ps1 -org_alias PROD -auth_url $env:PROD_AUTH_URL
+
+      - name: PUSH SOURCE CODE BASE TO ORG
+        shell: pwsh 
+        run: . .\ci-cd\scratch_org\push_src_to_org.ps1 -org_alias PROD
 
  
