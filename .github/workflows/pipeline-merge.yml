@@ -37,5 +37,14 @@ jobs:
     steps:
       - name : test 2
         run: echo "uat"
+    
+  prod_deployment:
+    runs-on: ubuntu-latest
+    environment: PROD
+    needs: [qa_deployment, uat_deployment]
+
+    steps:
+      - name : test 2
+        run: echo "prod"
 
  
