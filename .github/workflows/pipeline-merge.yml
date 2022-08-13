@@ -23,10 +23,6 @@ jobs:
       - name: INSTALL SFDX
         run: sh 'ci-cd/install/install-sfdx.sh'
 
-      # - name: AUTHENTICATE DEVHUB PWSH
-      #   shell: pwsh
-      #   run: . .\ci-cd\authenticate\authenticate-salesforce-devhub.ps1 -auth_key_base64 $env:SF_DEVHUB_KEY_BASE64 -auth_clientid $env:SF_DEVHUB_CLIENTID -auth_username $env:DEVHUB_ORG_USERNAME -auth_org_url $env:SF_DEVHUB_ORG_URL -devhub_alias $env:DEVHUB_ALIAS
-          
       - name: AUTHENTICATE QA ORG
         shell: pwsh
         run: . .\ci-cd\authenticate\authenticate-salesforce-authurl.ps1 -org_alias QA -auth_url $env:QA_AUTH_URL
@@ -41,7 +37,7 @@ jobs:
     env: 
       UAT_AUTH_URL:  ${{ secrets.UAT_AUTH_URL }}
     environment: UAT
-    needs: [qa_deployment]
+    # needs: [qa_deployment]
     steps:
 
       - name: CHECKOUT THIS REPOSITORY
@@ -49,11 +45,7 @@ jobs:
 
       - name: INSTALL SFDX
         run: sh 'ci-cd/install/install-sfdx.sh'
-        
-      # - name: AUTHENTICATE DEVHUB PWSH
-      #   shell: pwsh
-      #   run: . .\ci-cd\authenticate\authenticate-salesforce-devhub.ps1 -auth_key_base64 $env:SF_DEVHUB_KEY_BASE64 -auth_clientid $env:SF_DEVHUB_CLIENTID -auth_username $env:DEVHUB_ORG_USERNAME -auth_org_url $env:SF_DEVHUB_ORG_URL -devhub_alias $env:DEVHUB_ALIAS
-      
+
       - name: AUTHENTICATE UAT ORG
         shell: pwsh
         run: . .\ci-cd\authenticate\authenticate-salesforce-authurl.ps1 -org_alias UAT -auth_url $env:UAT_AUTH_URL
@@ -67,19 +59,15 @@ jobs:
     env: 
       PROD_AUTH_URL:  ${{ secrets.PROD_AUTH_URL }}
     environment: PROD
-    needs: [qa_deployment, uat_deployment]
+    # needs: [qa_deployment, uat_deployment]
     steps:
 
       - name: CHECKOUT THIS REPOSITORY
         uses: actions/checkout@v2
-        
+
       - name: INSTALL SFDX
         run: sh 'ci-cd/install/install-sfdx.sh'
 
-      # - name: AUTHENTICATE DEVHUB PWSH
-      #   shell: pwsh
-      #   run: . .\ci-cd\authenticate\authenticate-salesforce-devhub.ps1 -auth_key_base64 $env:SF_DEVHUB_KEY_BASE64 -auth_clientid $env:SF_DEVHUB_CLIENTID -auth_username $env:DEVHUB_ORG_USERNAME -auth_org_url $env:SF_DEVHUB_ORG_URL -devhub_alias $env:DEVHUB_ALIAS
-          
       - name: AUTHENTICATE PROD ORG
         shell: pwsh
         run: . .\ci-cd\authenticate\authenticate-salesforce-authurl.ps1 -org_alias PROD -auth_url $env:PROD_AUTH_URL
