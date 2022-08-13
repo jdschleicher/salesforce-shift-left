@@ -1,0 +1,76 @@
+name: pipeline-merge-workflow
+
+on:
+  pull_request:
+    branches:
+      - 'release*'
+    types: [closed]
+    
+jobs:
+  qa_deployment:
+    env: 
+      QA_AUTH_URL:  ${{ secrets.QA_AUTH_URL }}
+    runs-on: ubuntu-latest
+    environment: QA
+    steps:
+
+      - name: CHECKOUT THIS REPOSITORY
+        uses: actions/checkout@v2
+
+      - name: INSTALL SFDX
+        run: sh 'ci-cd/install/install-sfdx.sh'
+
+      - name: AUTHENTICATE QA ORG
+        shell: pwsh
+        run: . .\ci-cd\authenticate\authenticate-salesforce-authurl.ps1 -org_alias QA -auth_url $env:QA_AUTH_URL
+
+      - name: PUSH SOURCE CODE BASE TO ORG
+        shell: pwsh 
+        run: . .\ci-cd\scratch_org\push_src_to_org.ps1 -org_alias QA
+
+
+  uat_deployment:
+    runs-on: ubuntu-latest
+    env: 
+      UAT_AUTH_URL:  ${{ secrets.UAT_AUTH_URL }}
+    environment: UAT
+    needs: [qa_deployment]
+    steps:
+
+      - name: CHECKOUT THIS REPOSITORY
+        uses: actions/checkout@v2
+
+      - name: INSTALL SFDX
+        run: sh 'ci-cd/install/install-sfdx.sh'
+
+      - name: AUTHENTICATE UAT ORG
+        shell: pwsh
+        run: . .\ci-cd\authenticate\authenticate-salesforce-authurl.ps1 -org_alias UAT -auth_url $env:UAT_AUTH_URL
+
+      - name: PUSH SOURCE CODE BASE TO ORG
+        shell: pwsh 
+        run: . .\ci-cd\scratch_org\push_src_to_org.ps1 -org_alias UAT
+
+  prod_deployment:
+    runs-on: ubuntu-latest
+    env: 
+      PROD_AUTH_URL:  ${{ secrets.PROD_AUTH_URL }}
+    environment: PROD
+    needs: [qa_deployment, uat_deployment]
+    steps:
+
+      - name: CHECKOUT THIS REPOSITORY
+        uses: actions/checkout@v2
+
+      - name: INSTALL SFDX
+        run: sh 'ci-cd/install/install-sfdx.sh'
+
+      - name: AUTHENTICATE PROD ORG
+        shell: pwsh
+        run: . .\ci-cd\authenticate\authenticate-salesforce-authurl.ps1 -org_alias PROD -auth_url $env:PROD_AUTH_URL
+
+      - name: PUSH SOURCE CODE BASE TO ORG
+        shell: pwsh 
+        run: . .\ci-cd\scratch_org\push_src_to_org.ps1 -org_alias PROD
+
+ 
