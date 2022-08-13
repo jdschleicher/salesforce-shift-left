@@ -37,7 +37,7 @@ jobs:
     env: 
       UAT_AUTH_URL:  ${{ secrets.UAT_AUTH_URL }}
     environment: UAT
-    # needs: [qa_deployment]
+    needs: [qa_deployment]
     steps:
 
       - name: CHECKOUT THIS REPOSITORY
@@ -59,7 +59,7 @@ jobs:
     env: 
       PROD_AUTH_URL:  ${{ secrets.PROD_AUTH_URL }}
     environment: PROD
-    # needs: [qa_deployment, uat_deployment]
+    needs: [qa_deployment, uat_deployment]
     steps:
 
       - name: CHECKOUT THIS REPOSITORY
